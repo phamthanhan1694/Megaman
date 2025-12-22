@@ -1,0 +1,10 @@
+megaman:
+  effect:
+    - FrameImage.java
+    - Animation.java
+  userinterface:
+    - GameFrame.java
+    - GamePanel.java
+    - InputManager.java
+  data:
+    - megasprite.png
