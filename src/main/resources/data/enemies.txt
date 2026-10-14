@@ -1,0 +1,14 @@
+# type x y direction
+# Spawn positions from the reference GameWorldState.initEnemies().
+redeye 1250 410 left
+smallredgun 1600 180 left
+darkraise 2000 200 right
+darkraise 2800 350 right
+robotR 900 400 right
+robotR 3400 350 right
+redeye 2500 500 left
+redeye 3450 500 left
+redeye 500 1190 right
+darkraise 750 650 right
+robotR 1500 1150 right
+smallredgun 1700 980 left

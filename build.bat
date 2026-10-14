@@ -1,42 +1,37 @@
-@REM Tắt echo lệnh trên màn hình. Giúp cửa sổ CMD sạch đẹp hơn khi chạy.
 @echo off
-echo [ Preparing output folder...]
-@REM nếu thư mục bin không tồn tại, tạo nó
-if not exist bin mkdir bin 
+setlocal
+pushd "%~dp0"
+if errorlevel 1 exit /b 1
 
-@REM Hiển thị thông báo
-echo [ Finding all Java files...]
-@REM Bật enabledelayedexpansion để sử dụng biến cập nhật động trong vòng lặp
-setlocal enabledelayedexpansion
-@REM Tạo biến FILES để chứa danh sách tất cả file .java
-set FILES=
-@REM duyệt đệ quy qua tất cả các file .java trong thư mục hiện tại và các thư mục con
-for /r %%f in (*.java) do (
-    set FILES=!FILES! "%%f"
-)
-@REM  FILES chứa chuỗi "file1.java" "file2.java" "file3.java" ...
+set "OUT_DIR=target\classes"
+set "SOURCE_LIST=target\sources.txt"
 
-echo [ Compiling...]
-@REM Biên dịch tất cả file .java trong FILES, xuất file .class vào thư mục bin
-@REM javac: Trình biên dịch Java
-@REM -d bin: Xuất file .class vào thư mục bin
-javac -d bin %FILES%
+if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
 
-@REM Kiểm tra nếu có lỗi khi biên dịch (errorlevel 1 nghĩa là lỗi) thì thông báo lỗi, dừng lại và không chạy tiếp 
+xcopy /E /I /Y src\main\resources "%OUT_DIR%" > nul
+if errorlevel 2 goto failure
+(for /r src\main\java %%f in (*.java) do echo %%f) > "%SOURCE_LIST%"
+
+javac --release 17 -encoding UTF-8 -d "%OUT_DIR%" @"%SOURCE_LIST%"
 if errorlevel 1 (
-    echo  Compilation failed!
-    pause
-    exit /b
+    echo Compilation failed.
+    goto failure
 )
-@REM nếu không có lỗi thông báo đã compile xong và chạy chương trình
-@REM java: Trình thông dịch Java
-@REM Chạy chương trình với lớp chính là megaman.userinterface.GameFrame
-@REM -cp bin: Chạy với classpath là thư mục bin
-@REM megaman.userinterface.GameFrame: class có hàm main
-@REM pause: Đợi người dùng nhấn phím để xem kết quả
-echo [ Compilation successful. Running...]
-java -cp bin megaman.userinterface.GameFrame
-pause
 
+jar --create --file target\megaman-1.0.0.jar --main-class megaman.userinterface.GameFrame -C "%OUT_DIR%" .
+if errorlevel 1 goto failure
 
+if /I "%~1"=="build-only" (
+    echo Compilation successful.
+    popd
+    exit /b 0
+)
 
+java -cp "%OUT_DIR%" megaman.userinterface.GameFrame
+set "GAME_EXIT_CODE=%ERRORLEVEL%"
+popd
+exit /b %GAME_EXIT_CODE%
+
+:failure
+popd
+exit /b 1
